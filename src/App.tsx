@@ -1,26 +1,76 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Fabric, Pivot, PivotItem, Text, TextField } from '@fluentui/react';
+import { PrimaryButton } from '@fluentui/react-experiments';
+import React, { useState } from 'react';
+import './App.scss';
+import { Progress } from './Progress';
+import { Sidenav } from './Sidenav';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+interface IAppProps {}
+
+interface ITaskProps {
+  personaProps?: any;
+  id?: any;
+  completed?: any;
+  title?: any;
 }
 
-export default App;
+export const App: React.FunctionComponent = () => {
+  const [state, setState] = useState<ITaskProps>();
+
+  const renderCreateTask = () => {
+    return (
+      <div className="App-createTask">
+        <TextField
+          className="App-createTask-field"
+          placeholder="Add a new task"
+        />
+        <PrimaryButton>
+          Add task
+        </PrimaryButton>
+      </div>
+    );
+  };
+
+  const renderPivot = () => {
+    return (
+      <div className="App-pivot">
+        <Pivot>
+          <PivotItem 
+            headerText="All Tasks"
+            headerButtonProps={{
+              "data-order": 1,
+              "data-title": "My Files Title"
+            }}
+          />
+          <PivotItem headerText="Completed" />
+        </Pivot>
+      </div>
+    );
+  };
+
+  return (
+    <Fabric className="App">
+      <nav className="App-sideNav">
+        <Sidenav />
+      </nav>
+      <div className="App-container">
+        <header className="App-header">
+          <div className="App-titleBlock">
+            <Text variant="xxLarge" className="App-title">
+              Team Tasks
+            </Text>
+            <div className="App-description">
+              <TextField borderless placeholder="Describe your list" />
+            </div>
+            {renderCreateTask()}
+            {renderPivot()}
+          </div>
+        </header>
+        <main className="App-main"></main>
+        <footer className="App-footer">
+          <Progress />
+        </footer>
+      </div>
+    </Fabric>
+  );
+};

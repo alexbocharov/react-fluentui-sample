@@ -1,0 +1,140 @@
+@import '~@fluentui/react/dist/sass/References';
+
+// App variables
+$App-sectionPadding: 20px 28px;
+$App-border: 1px solid $ms-color-neutralLight;
+
+.App {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  overflow: auto;
+  height: 100%;
+}
+
+.App-sideNav,
+.App-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.App-sideNav {
+  flex-shrink: 0;
+  max-width: 200px;
+}
+
+.Sidenav-placeholder {
+  padding: 15px;
+}
+
+.App-container {
+  background-color: rgba(255, 255, 255, 0.75);
+  flex-grow: 1;
+  border: $App-border;
+  padding: 10px;
+}
+
+.App-header {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.App-titleBlock {
+  margin-top: 20px;
+}
+
+.App-title {
+  flex-grow: 0;
+  margin: 0;
+  padding: 20px 28px 0 28px;
+  text-align: left;
+
+  // Use Fabric Core Typography mixins to add Fluent text styles.
+  // For more details:
+  // Refer to https://developer.microsoft.com/en-us/fabric#/styles/typography
+  @include ms-fontWeight-semibold;
+}
+
+.App-description {
+  flex-grow: 0;
+  margin: 0;
+  padding: 0 0 20px 20px;
+}
+
+.App-main {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: $App-sectionPadding;
+}
+
+.App-pivot {
+  display: flex;
+  padding: 0 20px;
+}
+
+.App-createTask {
+  display: flex;
+  flex-shrink: 0;
+  margin: 0 28px 10px;
+}
+
+.App-createTask-field {
+  @include ms-margin(0, 10px, 0, 0);
+  flex-grow: 1;
+}
+
+.App-createTask-button {
+  flex-shrink: 0;
+}
+
+.App-taskList {
+  overflow: auto;
+  flex-grow: 1;
+
+  .ms-Checkbox {
+    margin-bottom: 14px;
+  }
+}
+
+.App-task {
+  border: $App-border;
+  border-bottom: 0;
+  padding: 20px;
+  transition: box-shadow 0.1ms ease;
+  position: relative;
+
+  &:last-child {
+    border-bottom: 1px solid $ms-color-gray30;
+  }
+
+  &:hover {
+    cursor: pointer;
+    background-color: $ms-color-gray10;
+
+    .App-taskActions {
+      opacity: 1;
+    }
+  }
+}
+
+.App-persona {
+  padding-left: 24px;
+  padding-bottom: 2px;
+}
+
+.App-taskActions {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 10px;
+  opacity: 0;
+}
+
+.App-footer {
+  flex-grow: 0;
+  padding: $App-sectionPadding;
+  padding-top: 0;
+}

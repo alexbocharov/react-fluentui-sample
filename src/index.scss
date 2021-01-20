@@ -1,0 +1,23 @@
+@import '~@fluentui/react/dist/sass/References';
+
+html {
+  height: 100%;
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+body {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  background-color: $ms-color-gray10;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  display: flex;
+}
