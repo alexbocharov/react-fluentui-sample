@@ -1,11 +1,17 @@
-import { Fabric, Pivot, PivotItem, Text, TextField } from '@fluentui/react';
-import { PrimaryButton } from '@fluentui/react-experiments';
 import React, { useState } from 'react';
+import { Checkbox, Fabric, IconButton, Persona, PersonaPresence, PersonaSize, Pivot, PivotItem, Text, TextField } from '@fluentui/react';
+import { PrimaryButton } from '@fluentui/react-experiments';
 import './App.scss';
 import { Progress } from './Progress';
 import { Sidenav } from './Sidenav';
+import TaskManager from './TaskManager';
 
-interface IAppProps {}
+interface IAppProps {
+  tasks: [];
+  inputValue?: string,
+  hideDeleteDialog?: true,
+  taskToDelete?: null
+}
 
 interface ITaskProps {
   personaProps?: any;
@@ -14,8 +20,40 @@ interface ITaskProps {
   title?: any;
 }
 
+const examplePersona = {
+  showSecondaryText: true,
+  size: PersonaSize.size32,
+  presence: PersonaPresence.online
+};
+
 export const App: React.FunctionComponent = () => {
-  const [state, setState] = useState<ITaskProps>();
+  var taskManager = new TaskManager();
+  const [state, setState] = useState<IAppProps>({
+    tasks: taskManager._tasks,
+    inputValue: '',
+    hideDeleteDialog: true,
+  });
+
+  const addTask = () => {
+    taskManager.addTask(state.inputValue);
+    setState({ tasks: taskManager.getTasks(), inputValue: '' });
+  };
+
+  const onChangeTextField = React.useCallback(
+    (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+      setState({ tasks: taskManager.getTasks(), inputValue: newValue || '' });
+    },
+    []
+  );
+
+  const onKeyDownTextField = React.useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
+      if (event.key === 'Enter') {
+        addTask();
+      }
+    },
+    []
+  );
 
   const renderCreateTask = () => {
     return (
@@ -23,8 +61,14 @@ export const App: React.FunctionComponent = () => {
         <TextField
           className="App-createTask-field"
           placeholder="Add a new task"
+          onChange={onChangeTextField}
+          onKeyDown={onKeyDownTextField}
+          value={state?.inputValue}
         />
-        <PrimaryButton>
+        <PrimaryButton
+          className="App-createTask-button"
+          onClick={addTask}
+        >
           Add task
         </PrimaryButton>
       </div>
@@ -35,7 +79,7 @@ export const App: React.FunctionComponent = () => {
     return (
       <div className="App-pivot">
         <Pivot>
-          <PivotItem 
+          <PivotItem
             headerText="All Tasks"
             headerButtonProps={{
               "data-order": 1,
@@ -44,6 +88,41 @@ export const App: React.FunctionComponent = () => {
           />
           <PivotItem headerText="Completed" />
         </Pivot>
+      </div>
+    );
+  };
+
+  const renderTaskList = () => {
+    return (
+      <div className="App-taskList">
+        {state.tasks.map((task: ITaskProps) => {
+          let { personaProps } = task;
+          let personaArgs = { ...personaProps, ...examplePersona };
+
+          return (
+            <div
+              className="App-task"
+              key={task.id}
+            >
+              <Checkbox
+                checked={task.completed}
+                label={task.title}
+                name={task.id}
+              />
+              <div className="App-persona">
+                <div className="ms-PersonaExample">
+                  <Persona {...personaArgs} />
+                </div>
+              </div>
+              <IconButton
+                className="App-taskActions"
+                iconProps={{ iconName: "Delete" }}
+                title="Delete task"
+                ariaLabel="Delete task"
+              />
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -66,7 +145,7 @@ export const App: React.FunctionComponent = () => {
             {renderPivot()}
           </div>
         </header>
-        <main className="App-main"></main>
+        <main className="App-main">{renderTaskList()}</main>
         <footer className="App-footer">
           <Progress />
         </footer>
