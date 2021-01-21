@@ -2,23 +2,11 @@ import React, { useState } from 'react';
 import { Checkbox, Dialog, DialogFooter, DialogType, Fabric, IconButton, Persona, PersonaPresence, PersonaSize, Pivot, PivotItem, Text, TextField } from '@fluentui/react';
 import { DefaultButton, PrimaryButton } from '@fluentui/react-experiments';
 import './App.scss';
-import TaskManager from '../../services/TaskManager';
 import { Sidenav } from '../Sidenav/Sidenav';
 import { Progress } from '../Progress/Progress';
-
-interface IAppProps {
-  tasks: [];
-  inputValue?: string,
-  hideDeleteDialog?: boolean,
-  taskToDelete?: any
-}
-
-interface ITaskProps {
-  personaProps?: any;
-  id?: any;
-  completed?: any;
-  title?: any;
-}
+import { ITask } from '../../types';
+import DataProvider from '../../services/DataProvider';
+import { useBoolean } from '@fluentui/react-hooks';
 
 const examplePersona = {
   showSecondaryText: true,
@@ -26,50 +14,18 @@ const examplePersona = {
   presence: PersonaPresence.online
 };
 
+const dataProvider = new DataProvider();
+
 export const App: React.FunctionComponent = () => {
-  var taskManager = new TaskManager();
-  const [state, setState] = useState<IAppProps>({
-    tasks: taskManager._tasks,
-    inputValue: '',
-    hideDeleteDialog: true,
-  });
-
-  const addTask = () => {
-    taskManager.addTask(state.inputValue);
-    setState({ tasks: taskManager.getTasks(), inputValue: '' });
-  };
-
-  const toogleTaskCompleted = (taskId: any) => {
-    taskManager.toggleTaskCompleted(taskId);
-    setState({ tasks: taskManager.getTasks() });
-  };
-
-  const confirmDeleteTask = (taskId: any) => {
-    showDeleteDialog();
-    setState({ ...state, tasks: taskManager.getTasks(), taskToDelete: taskId });
-  };
-
-  const showDeleteDialog = () => {
-    setState({ ...state, tasks: state.tasks, hideDeleteDialog: false });
-  };
-
-  const closeDeleteDialog = () => {
-    setState({ tasks: state.tasks, hideDeleteDialog: true });
-  };
-
-  const handleConfirmDeleteClick = (taskId: any) => {
-    taskManager.deleteTask(taskId);
-    setState({ tasks: taskManager.getTasks(), taskToDelete: null });
-    closeDeleteDialog();
-  };
-
-  const handleCancelDeleteClick = () => {
-    closeDeleteDialog();
-  };
+  const [hideDeleteDialog, { toggle: toggleHideDeleteDialog }] = useBoolean(true);
+  const [taskTitle, setTaskTitle] = React.useState<string>('');
+  const [taskToDelete, setTaskToDelete] = React.useState<ITask>();
+  const [tasks, setTasks] = React.useState<ITask[]>(dataProvider.tasks);
+  const [task, setTask] = React.useState<ITask>();
 
   const onChangeTextField = React.useCallback(
     (_event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
-      setState({ tasks: taskManager.getTasks(), inputValue: newValue || '' });
+      setTaskTitle(newValue || '');
     },
     []
   );
@@ -83,15 +39,27 @@ export const App: React.FunctionComponent = () => {
     []
   );
 
-  const renderCreateTask = () => {
+  const addTask = (): void => {
+    dataProvider.createTask(taskTitle)
+      .then(() => {
+        setTasks(dataProvider.tasks);
+      });
+  }
+
+  const onChangeCompleted = (task: ITask): void => {
+    console.log(task);
+    task.completed = !task.completed;
+    setTask(task)
+  }
+
+  const renderCreateTask = (): JSX.Element => {
     return (
       <div className="App-createTask">
         <TextField
           className="App-createTask-field"
           placeholder="Add a new task"
+          value={taskTitle}
           onChange={onChangeTextField}
-          onKeyDown={onKeyDownTextField}
-          value={state?.inputValue}
         />
         <PrimaryButton
           className="App-createTask-button"
@@ -103,7 +71,7 @@ export const App: React.FunctionComponent = () => {
     );
   };
 
-  const renderPivot = () => {
+  const renderPivot = (): JSX.Element => {
     return (
       <div className="App-pivot">
         <Pivot>
@@ -120,10 +88,10 @@ export const App: React.FunctionComponent = () => {
     );
   };
 
-  const renderTaskList = () => {
+  const renderTaskList = (): JSX.Element => {
     return (
       <div className="App-taskList">
-        {state.tasks.map((task: ITaskProps) => {
+        {tasks.map((task: ITask) => {
           let { personaProps } = task;
           let personaArgs = { ...personaProps, ...examplePersona };
 
@@ -131,15 +99,12 @@ export const App: React.FunctionComponent = () => {
             <div
               className="App-task"
               key={task.id}
-              onClick={() => { toogleTaskCompleted(task.id) }}
             >
               <Checkbox
                 checked={task.completed}
                 label={task.title}
                 name={task.id}
-                onChange={(_event, _checked) => {
-                  toogleTaskCompleted(task.id);
-                }}
+                onChange={(event, checked) => { onChangeCompleted(task) }}
               />
               <div className="App-persona">
                 <div className="ms-PersonaExample">
@@ -153,7 +118,8 @@ export const App: React.FunctionComponent = () => {
                 ariaLabel="Delete task"
                 onClick={event => {
                   event.stopPropagation();
-                  confirmDeleteTask(task.id);
+                  toggleHideDeleteDialog();
+                  setTaskToDelete(task);
                 }}
               />
             </div>
@@ -166,8 +132,7 @@ export const App: React.FunctionComponent = () => {
   const renderDeleteDialog = () => {
     return (
       <Dialog
-        hidden={state.hideDeleteDialog}
-        onDismiss={closeDeleteDialog}
+        hidden={hideDeleteDialog}
         dialogContentProps={{
           type: DialogType.normal,
           title: 'Delete task',
@@ -178,10 +143,10 @@ export const App: React.FunctionComponent = () => {
         }}
       >
         <DialogFooter>
-          <PrimaryButton onClick={() => { handleConfirmDeleteClick(state.taskToDelete) }}>
+          <PrimaryButton>
             Ok
           </PrimaryButton>
-          <DefaultButton onClick={() => handleCancelDeleteClick()}>
+          <DefaultButton onClick={toggleHideDeleteDialog}>
             Cancel
           </DefaultButton>
         </DialogFooter>
@@ -209,11 +174,7 @@ export const App: React.FunctionComponent = () => {
         </header>
         <main className="App-main">{renderTaskList()}</main>
         <footer className="App-footer">
-          <Progress
-            completed={taskManager.getCompletedTaskCount()}
-            total={taskManager.getTaskCount()}
-            percentComplete={taskManager.getTasksPercentComplete()}
-          />
+          <Progress />
         </footer>
         {renderDeleteDialog()}
       </div>
