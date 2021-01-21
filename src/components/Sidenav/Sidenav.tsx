@@ -10,21 +10,21 @@ export const Sidenav = (props: any) => {
       collapseButtonAriaLabel={'sitemap'}
       items={[
         {
+          key: 'collapsible-example-item3',
+          name: 'Tasks',
+          iconProps: { iconName: 'Home' },
+          active: true
+        },
+        {
           key: 'collapsible-example-item1',
           name: 'My Day',
           iconProps: { iconName: 'Sunny' },
-          active: true
+          active: false
         },
         {
           key: 'collapsible-example-item2',
           name: 'Important',
           iconProps: { iconName: 'FavoriteStar' },
-          active: false
-        },
-        {
-          key: 'collapsible-example-item3',
-          name: 'Tasks',
-          iconProps: { iconName: 'Home' },
           active: false
         },
         {

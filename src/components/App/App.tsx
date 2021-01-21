@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { Checkbox, Fabric, IconButton, Persona, PersonaPresence, PersonaSize, Pivot, PivotItem, Text, TextField } from '@fluentui/react';
-import { PrimaryButton } from '@fluentui/react-experiments';
+import { Checkbox, Dialog, DialogFooter, DialogType, Fabric, IconButton, Persona, PersonaPresence, PersonaSize, Pivot, PivotItem, Text, TextField } from '@fluentui/react';
+import { DefaultButton, PrimaryButton } from '@fluentui/react-experiments';
 import './App.scss';
-import { Progress } from './Progress';
-import { Sidenav } from './Sidenav';
-import TaskManager from './TaskManager';
+import TaskManager from '../../services/TaskManager';
+import { Sidenav } from '../Sidenav/Sidenav';
+import { Progress } from '../Progress/Progress';
 
 interface IAppProps {
   tasks: [];
   inputValue?: string,
-  hideDeleteDialog?: true,
-  taskToDelete?: null
+  hideDeleteDialog?: boolean,
+  taskToDelete?: any
 }
 
 interface ITaskProps {
@@ -39,8 +39,36 @@ export const App: React.FunctionComponent = () => {
     setState({ tasks: taskManager.getTasks(), inputValue: '' });
   };
 
+  const toogleTaskCompleted = (taskId: any) => {
+    taskManager.toggleTaskCompleted(taskId);
+    setState({ tasks: taskManager.getTasks() });
+  };
+
+  const confirmDeleteTask = (taskId: any) => {
+    showDeleteDialog();
+    setState({ ...state, tasks: taskManager.getTasks(), taskToDelete: taskId });
+  };
+
+  const showDeleteDialog = () => {
+    setState({ ...state, tasks: state.tasks, hideDeleteDialog: false });
+  };
+
+  const closeDeleteDialog = () => {
+    setState({ tasks: state.tasks, hideDeleteDialog: true });
+  };
+
+  const handleConfirmDeleteClick = (taskId: any) => {
+    taskManager.deleteTask(taskId);
+    setState({ tasks: taskManager.getTasks(), taskToDelete: null });
+    closeDeleteDialog();
+  };
+
+  const handleCancelDeleteClick = () => {
+    closeDeleteDialog();
+  };
+
   const onChangeTextField = React.useCallback(
-    (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+    (_event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
       setState({ tasks: taskManager.getTasks(), inputValue: newValue || '' });
     },
     []
@@ -103,11 +131,15 @@ export const App: React.FunctionComponent = () => {
             <div
               className="App-task"
               key={task.id}
+              onClick={() => { toogleTaskCompleted(task.id) }}
             >
               <Checkbox
                 checked={task.completed}
                 label={task.title}
                 name={task.id}
+                onChange={(_event, _checked) => {
+                  toogleTaskCompleted(task.id);
+                }}
               />
               <div className="App-persona">
                 <div className="ms-PersonaExample">
@@ -119,11 +151,41 @@ export const App: React.FunctionComponent = () => {
                 iconProps={{ iconName: "Delete" }}
                 title="Delete task"
                 ariaLabel="Delete task"
+                onClick={event => {
+                  event.stopPropagation();
+                  confirmDeleteTask(task.id);
+                }}
               />
             </div>
           );
         })}
       </div>
+    );
+  };
+
+  const renderDeleteDialog = () => {
+    return (
+      <Dialog
+        hidden={state.hideDeleteDialog}
+        onDismiss={closeDeleteDialog}
+        dialogContentProps={{
+          type: DialogType.normal,
+          title: 'Delete task',
+          subText: 'Are you sure you want to delete this task? This cannot be undone.'
+        }}
+        modalProps={{
+          isBlocking: false
+        }}
+      >
+        <DialogFooter>
+          <PrimaryButton onClick={() => { handleConfirmDeleteClick(state.taskToDelete) }}>
+            Ok
+          </PrimaryButton>
+          <DefaultButton onClick={() => handleCancelDeleteClick()}>
+            Cancel
+          </DefaultButton>
+        </DialogFooter>
+      </Dialog>
     );
   };
 
@@ -147,8 +209,13 @@ export const App: React.FunctionComponent = () => {
         </header>
         <main className="App-main">{renderTaskList()}</main>
         <footer className="App-footer">
-          <Progress />
+          <Progress
+            completed={taskManager.getCompletedTaskCount()}
+            total={taskManager.getTaskCount()}
+            percentComplete={taskManager.getTasksPercentComplete()}
+          />
         </footer>
+        {renderDeleteDialog()}
       </div>
     </Fabric>
   );
