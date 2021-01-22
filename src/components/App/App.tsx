@@ -19,7 +19,7 @@ const dataProvider = new DataProvider();
 export const App: React.FunctionComponent = () => {
   const [hideDeleteDialog, { toggle: toggleHideDeleteDialog }] = useBoolean(true);
   const [taskTitle, setTaskTitle] = React.useState<string>('');
-  const [taskToDelete, setTaskToDelete] = React.useState<ITask>();
+  const [taskToDelete, setTaskToDelete] = React.useState<ITask | null>(null);
   const [tasks, setTasks] = React.useState<ITask[]>(dataProvider.tasks);
   const [task, setTask] = React.useState<ITask>();
 
@@ -47,9 +47,20 @@ export const App: React.FunctionComponent = () => {
   }
 
   const onChangeCompleted = (task: ITask): void => {
-    console.log(task);
     task.completed = !task.completed;
     setTask(task)
+  }
+
+  const onConfirmDeleteClick = (): void => {
+    if (taskToDelete !== null) {
+      dataProvider.deleteTask(taskToDelete as ITask)
+        .then(() => {
+          setTaskToDelete(null);
+          setTasks(dataProvider.tasks);
+        });
+    }
+
+    toggleHideDeleteDialog();
   }
 
   const renderCreateTask = (): JSX.Element => {
@@ -143,7 +154,7 @@ export const App: React.FunctionComponent = () => {
         }}
       >
         <DialogFooter>
-          <PrimaryButton>
+          <PrimaryButton onClick={onConfirmDeleteClick}>
             Ok
           </PrimaryButton>
           <DefaultButton onClick={toggleHideDeleteDialog}>
