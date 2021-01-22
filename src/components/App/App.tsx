@@ -21,7 +21,7 @@ export const App: React.FunctionComponent = () => {
   const [taskTitle, setTaskTitle] = React.useState<string>('');
   const [taskToDelete, setTaskToDelete] = React.useState<ITask | null>(null);
   const [tasks, setTasks] = React.useState<ITask[]>(dataProvider.tasks);
-  const [task, setTask] = React.useState<ITask>();
+  const [task, setTask] = React.useState<ITask>({} as ITask);
 
   const onChangeTextField = React.useCallback(
     (_event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
@@ -48,10 +48,11 @@ export const App: React.FunctionComponent = () => {
 
   const onChangeCompleted = (task: ITask): void => {
     task.completed = !task.completed;
-    setTask(task)
+    setTask(task);
+    dataProvider.updateTask(task);
   }
 
-  const onConfirmDeleteClick = (): void => {
+  const onConfirmDelete = (): void => {
     if (taskToDelete !== null) {
       dataProvider.deleteTask(taskToDelete as ITask)
         .then(() => {
@@ -63,6 +64,10 @@ export const App: React.FunctionComponent = () => {
     toggleHideDeleteDialog();
   }
 
+  const onCancel = (): void => {
+    toggleHideDeleteDialog();
+  }
+
   const renderCreateTask = (): JSX.Element => {
     return (
       <div className="App-createTask">
@@ -71,6 +76,7 @@ export const App: React.FunctionComponent = () => {
           placeholder="Add a new task"
           value={taskTitle}
           onChange={onChangeTextField}
+          onKeyDown={onKeyDownTextField}
         />
         <PrimaryButton
           className="App-createTask-button"
@@ -154,10 +160,10 @@ export const App: React.FunctionComponent = () => {
         }}
       >
         <DialogFooter>
-          <PrimaryButton onClick={onConfirmDeleteClick}>
+          <PrimaryButton onClick={onConfirmDelete}>
             Ok
           </PrimaryButton>
-          <DefaultButton onClick={toggleHideDeleteDialog}>
+          <DefaultButton onClick={onCancel}>
             Cancel
           </DefaultButton>
         </DialogFooter>

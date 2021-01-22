@@ -1,4 +1,4 @@
-import { IPersonaProps, PersonaInitialsColor } from '@fluentui/react';
+import { PersonaInitialsColor } from '@fluentui/react';
 import { IDataProvider, ITask } from '../types';
 
 const ADD_TASKS_DELAY = 1;
@@ -97,11 +97,18 @@ export default class DataProvider implements IDataProvider {
     });
   }
 
+  public updateTask(task: ITask): Promise<ITask[]> {
+    return new Promise<ITask[]>(() => {
+      let updateTaskIndex = this.tasks.findIndex((t => t.id === task.id));
+      this.tasks[updateTaskIndex] = task;
+    });
+  }
+
   public deleteTask(taskDeleted: ITask): Promise<ITask[]> {
     return new Promise<ITask[]>(resolve => {
       this.tasks = this.tasks.filter((task: ITask) => task.id !== taskDeleted.id);
       resolve(this.tasks);
-    })
+    });
   }
 
   public addListener(listener: () => void): void {

@@ -8,6 +8,8 @@ export interface IDataProvider {
 
   createTask(title: string, personaProps: IPersonaProps): Promise<ITask[]>;
 
+  updateTask(task: ITask): Promise<ITask[]>;
+
   deleteTask(taskDeleted: ITask): Promise<ITask[]>;
 
   addListener(listener: () => void): void;
