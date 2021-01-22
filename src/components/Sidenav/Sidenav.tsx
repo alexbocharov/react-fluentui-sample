@@ -1,8 +1,7 @@
 import { Sidebar } from '@fluentui/react-experiments';
-import { getTheme, initializeIcons } from '@fluentui/react';
+import { getTheme } from '@fluentui/react';
 
 export const Sidenav = (props: any) => {
-  initializeIcons();
   return (
     <Sidebar
       collapsible={true}
